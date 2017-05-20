@@ -1,0 +1,7 @@
+# venvs
+venv/
+.puppy/
+
+# puppy
+pup
+puppy.json
