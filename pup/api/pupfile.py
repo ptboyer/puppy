@@ -34,12 +34,15 @@ def test_pupfile():
         return False
     return True
 
+def raise_pupfile_error():
+    raise Exception((
+        'Package file does not exist! ({})'
+        '\n  Use `pup init` to create one.').format(
+            meta(PUPFILE_NAME)))
+
 def requires_pupfile(f):
     def wrapper(*args, **kwargs):
         if not check_pupfile():
-            raise Exception((
-                'No package file exists! ({})'
-                '\n  Use `pup init` to create one.').format(
-                    meta(PUPFILE_NAME)))
+            raise_pupfile_error()
         return f(*args, **kwargs)
     return wrapper
