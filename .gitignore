@@ -9,6 +9,10 @@ puppy.json
 # python
 *.pyc
 __pycache__
+build
+dist
+*.egg-info
 
 # local
 *.sublime-*
+run.py

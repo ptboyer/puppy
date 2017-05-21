@@ -14,8 +14,6 @@ from .commands import (
 
 from .api.console import error
 
-__version__ = '0.0.1'
-
 def main():
 
     parser = argparse.ArgumentParser(
