@@ -7,4 +7,9 @@ from ..api.pupfile import read_pupfile, requires_pupfile
 def cmd_start(args):
 
     config = read_pupfile()
-    return python(config.get('main'))
+
+    target = config.get('main')
+    if not target:
+        raise Exception("No target specified for 'main' in package file.")
+
+    return python(target)
