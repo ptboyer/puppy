@@ -21,12 +21,6 @@ def cmd_init(args):
             PUPFILE_NAME))
 
     try:
-        # print('This utility will help you create a {} file.'.format(PUPFILE_NAME))
-        # print('It tries to guess sensible configuration defaults.')
-        # print('Use `pup install <package> --save` to save installed packages.')
-        # print('Press ^C at any time to quit.')
-        # print('')
-
         default_name = ''.join(os.getcwd().split('/')[-1:])
         config['name'] = req('name', default_name)
 
