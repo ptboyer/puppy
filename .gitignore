@@ -3,5 +3,12 @@ venv/
 .puppy/
 
 # puppy
-pup
+pup.sh
 puppy.json
+
+# python
+*.pyc
+__pycache__
+
+# local
+*.sublime-*
