@@ -12,6 +12,14 @@ Installing packages automatically creates a virtual environment (`.puppy/`) usin
 
 ## Commands
 
+### Package init
+
+```
+$ pup init
+```
+
+- Interactively creates a `puppy.json`.
+
 ### Install packages
 
 ```
@@ -41,13 +49,21 @@ $ pup list
 - Lists all installed packages in the virtual environment.
 - Highlights the dependencies that are *also* specified in `puppy.json`.
 
-### Run python from virtual environment
+### Run python and scripts
 
 ```
-$ pup run <args>
+$ pup start
 ```
 
-- Runs `args` as a parameter to `python` as managed by the virtual environment (`.puppy/bin/python`).
+- Runs `python` with parameters as specified in the `main` entry point key from `puppy.json`.
+
+```
+$ pup run [<script>]
+```
+
+- If `script` is not specified, runs `python` interactively as managed by the virtual environment (`.puppy/bin/python`).
+- If script is specified and first arg ends with `.py`, attempts to run as params to `python`.
+- Otherwise, attempts to run `<script>` from `scripts` in `puppy.json`, and uses `python`.
 
 ### Destroy virtual environment
 
@@ -56,3 +72,4 @@ $ pup destroy
 ```
 
 - Destroys the virtual environment (`.puppy/`) in the current directory.
+
