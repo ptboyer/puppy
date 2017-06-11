@@ -1,9 +1,6 @@
 
-from ..api.venv import use_venv, requires_venv, pip
-from ..api.pupfile import read_pupfile, write_pupfile, test_pupfile
-from ..api.packages import format_package_names, string_package_names
+from ..api import puppy, venv
 from ..api.console import meta, warn
-from ..api.piputil import index_pip_packages
 
 def print_uninstalling(packages):
     print('🐶  Uninstalling packages ({})'.format(
@@ -19,7 +16,7 @@ def pip_uninstall(packages):
         return False
     return True
 
-@requires_venv
+@venv.required
 def cmd_uninstall(args):
 
     use_venv()
@@ -28,7 +25,7 @@ def cmd_uninstall(args):
     if not target:
         raise Exception('No packages specified.')
 
-    config = read_pupfile()
+    config = puppy.read()
     packages = format_package_names(target)
     freeze = index_pip_packages()
 
@@ -40,7 +37,7 @@ def cmd_uninstall(args):
     successful_packages = []
     for package in packages:
         is_installed = bool(freeze.get(package))
-        is_saved = bool(config['dependencies'].get(package))
+        is_saved = bool(config.get('dependencies', {}).get(package))
         if not is_installed:
             print(warn('Package ({}) is not installed!'.format(
                 package)))
@@ -60,11 +57,11 @@ def cmd_uninstall(args):
 
     if args.save:
         # add versions to pupfile after installations
-        if not test_pupfile():
+        if not puppy.test():
             return
 
         for package in packages:
             if config['dependencies'].get(package):
                 config['dependencies'].pop(package)
 
-        write_pupfile(config)
+        puppy.write(config)

@@ -4,7 +4,7 @@ from collections import OrderedDict
 from .constants import PUPFILE_NAME
 from .console import warn, meta
 
-def read_pupfile():
+def read():
     data = OrderedDict({})
 
     try:
@@ -15,11 +15,11 @@ def read_pupfile():
 
     return data
 
-def write_pupfile(data):
+def write(data):
     with open(PUPFILE_NAME, 'w') as f:
         json.dump(data, f, indent=2)
 
-def check_pupfile():
+def check():
     try:
         open(PUPFILE_NAME, 'r')
     except:
@@ -27,22 +27,22 @@ def check_pupfile():
     else:
         return True
 
-def test_pupfile():
-    if not check_pupfile():
+def test():
+    if not check():
         print(warn('Package file does not exist! ({})'.format(
             meta(PUPFILE_NAME))))
         return False
     return True
 
-def raise_pupfile_error():
+def raise_error():
     raise Exception((
         'Package file does not exist! ({})'
         '\n  Use `pup init` to create one.').format(
             meta(PUPFILE_NAME)))
 
-def requires_pupfile(f):
+def required(f):
     def wrapper(*args, **kwargs):
-        if not check_pupfile():
-            raise_pupfile_error()
+        if not check():
+            raise_error()
         return f(*args, **kwargs)
     return wrapper

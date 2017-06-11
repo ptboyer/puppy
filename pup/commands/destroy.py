@@ -1,13 +1,12 @@
 
 import shutil
-from ..api.venv import requires_venv
+from ..api import venv
 from ..api.constants import VENV_NAME, VENV_PATH
 from ..api.console import meta
 
-@requires_venv
+@venv.required
 def cmd_destroy(args):
 
-    print('🔥  Destroying virtual environment ({})'.format(
-        meta(VENV_NAME)))
+    print('🔥  Destroying virtual environment')
 
     shutil.rmtree(VENV_PATH)

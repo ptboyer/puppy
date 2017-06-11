@@ -1,38 +1,41 @@
 
 from termcolor import colored
-from ..api.venv import requires_venv, pip
-from ..api.pupfile import read_pupfile, test_pupfile
+from ..api import pip, venv, puppy
 
-@requires_venv
+PIN_DEFAULT = '-'
+PIN_IS_SAVED = '*'
+PIN_IS_DEVELOP = '%'
+COLOUR_IS_SAVED = 'magenta'
+COLOUR_IS_DEVELOP = 'cyan'
+
+@venv.required
 def cmd_list(args):
 
-    config = read_pupfile()
+    config = puppy.read()
     dependencies = config.get('dependencies', {})
-    versions = {}
 
-    # get all package versions from pip freeze
-    res = pip('freeze')
-    if res.returncode != 0:
-        raise Exception('Failed to access version information.')
+    for package in pip.get_packages():
 
-    # index all package versions into dict
-    freeze = res.stdout.decode('utf-8').splitlines()
-    versions = {}
-    for package in freeze:
-        name, version = package.split('==')
-        _package = name.lower()
-        versions[_package] = version
+        name = package.get('name', '').lower()
+        version = package.get('version')
 
-        # print package versions, mark those included in dependencies
-        pin = bool(dependencies.get(_package))
-        out = ('{pin} {name}@{version}'.format(
-            name=colored(_package, attrs=['bold']),
-            version=versions.get(_package),
-            pin='*' if pin else '-'))
+        pin = PIN_DEFAULT
+        color = None
+        is_saved = bool(dependencies.get(name))
 
-        if pin:
-            print(colored(out, 'magenta'))
-        else:
-            print(out)
+        if is_saved:
+            color = COLOUR_IS_SAVED
+            pin = colored(PIN_IS_SAVED, COLOUR_IS_SAVED)
+        elif version == 'develop':
+            pin = colored(PIN_IS_DEVELOP, COLOUR_IS_DEVELOP)
 
-    test_pupfile()
+        _pin = pin
+        _name = colored(name, color, attrs=['bold'])
+        _version = version
+
+        _package = ('{pin} {name}@{version}'.format(
+            name=_name, version=_version, pin=_pin))
+
+        print(_package)
+
+    puppy.test()

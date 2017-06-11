@@ -1,12 +1,11 @@
 
-from ..api.venv import requires_venv, python
-from ..api.pupfile import read_pupfile, requires_pupfile
+from ..api import venv, puppy
 
-@requires_venv
-@requires_pupfile
+@venv.required
+@puppy.required
 def cmd_start(args):
 
-    config = read_pupfile()
+    config = puppy.read()
 
     target = config.get('main')
     if not target:

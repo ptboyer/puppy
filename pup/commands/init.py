@@ -1,7 +1,7 @@
 
 import os
 from termcolor import colored
-from ..api.pupfile import read_pupfile, write_pupfile, check_pupfile
+from ..api import puppy
 from ..api.console import meta
 from ..api.constants import PUPFILE_NAME
 
@@ -13,8 +13,8 @@ def req(field, default=''):
 
 def cmd_init(args):
 
-    config = read_pupfile()
-    config_status = check_pupfile()
+    config = puppy.read()
+    config_status = puppy.check()
 
     if config_status:
         raise Exception('Package file ({}) already exists. '.format(
@@ -46,5 +46,5 @@ def cmd_init(args):
         print('')
 
     else:
-        write_pupfile(config)
+        puppy.write(config)
         print('OK')

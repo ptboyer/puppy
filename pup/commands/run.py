@@ -1,13 +1,10 @@
 
-from ..api.venv import requires_venv, python, script
-from ..api.pupfile import (
-    read_pupfile, check_pupfile,
-    test_pupfile, raise_pupfile_error)
+from ..api import venv, puppy
 
-@requires_venv
+@venv.required
 def cmd_run(args):
 
-    config = read_pupfile()
+    config = puppy.read()
 
     target = args.target
     if not target:
@@ -15,12 +12,12 @@ def cmd_run(args):
 
     # only concern the first arg
     if target[0].endswith('.py'):
-        test_pupfile()
+        puppy.test()
         return python(' '.join(args.target))
 
     # scripts require a pupfile
-    if not check_pupfile():
-        return raise_pupfile_error()
+    if not puppy.check():
+        return puppy.raise_error()
 
     target_script = config.get('scripts', {}).get(target)
     if target_script:
