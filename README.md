@@ -72,4 +72,3 @@ $ pup destroy
 ```
 
 - Destroys the virtual environment (`.puppy/`) in the current directory.
-

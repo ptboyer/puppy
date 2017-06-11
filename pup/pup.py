@@ -14,10 +14,13 @@ from .commands import (
 
 from .api.console import error
 
+class ArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        return
+
 def main():
 
-    parser = argparse.ArgumentParser(
-        description='PUP Uncomplicates Packages')
+    parser = ArgumentParser()
     parser.add_argument(
         'command', metavar='command', type=str)
     parser.add_argument(
@@ -39,7 +42,13 @@ def main():
 
     try:
         if not commands.get(args.command):
-            raise Exception('Not a valid command.')
+            print('''
+    Usage: pup [command] [flags]
+
+    Commands:
+        init, install, uninstall, list, start, run, destroy
+''')
+            return exit(2)
 
         commands[args.command](args)
 
