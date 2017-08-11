@@ -1,6 +1,5 @@
 
-from collections import OrderedDict
-
+from subprocess import CalledProcessError
 from ..api import venv, puppy, pip
 from ..api.venv import io
 from ..api.pip_parse import (
@@ -8,11 +7,13 @@ from ..api.pip_parse import (
     ACTION_CLONING,
     ACTION_INSTALLING_SUCCESS,
     ACTION_REQUIREMENT_PREEXISTS,
+    ACTION_UNINSTALLING,
     parse_line,
     parse_package
 )
 from ..api.packages import format_package_names, string_package_names
-from ..api.console import meta, warn, info, success
+from ..api.console import meta, info, success
+from subprocess import CalledProcessError
 
 def print_fetching(packages):
     if packages:
@@ -24,13 +25,6 @@ def print_fetching_success(packages):
     if packages:
         print('🎾  Successfully installed packages ({})'.format(
             meta(packages)))
-
-def pip_install(packages):
-    res = shell('pip install {}'.format(packages))
-    if res.returncode != 0:
-        raise Exception(
-            (b'Failed to install.\n' + res.stderr).decode())
-    return res.stdout
 
 def render_line(line, obj):
 
@@ -58,12 +52,14 @@ def render_line(line, obj):
     elif action == ACTION_REQUIREMENT_PREEXISTS:
         dependency_chain = None
         if ext:
-            dependency_chain = ' (from: {})'.format(
+            dependency_chain = ' ({})'.format(
                 '->'.join([package_to_string(dep) for dep in ext]))
-        return success('Requirement already satisfied: {package}{dependencies}'.format(
+        return success("Requirement '{package}' already satisfied: {dependencies}".format(
             package=package_to_string(primary_package),
             dependencies=(dependency_chain or '')
         ))
+    elif action == ACTION_UNINSTALLING:
+        return info('Uninstalling {}'.format(primary_package.get('name')))
     else:
         return info(line)
 
@@ -95,30 +91,44 @@ def install_packages(packages):
     packages_string = string_package_names(default_packages)
     print_fetching(packages_string)
 
-    for line in io.shell('pip install {}'.format(packages_string)):
-        res = parse_line(line)
-        action = res.get('action')
-        if action:
-            print(render_line(line, res))
+    try:
+        for line in io.shell('pip install {}'.format(packages_string)):
 
-    # install all managed packages
-    for package in managed_packages:
-        _package = None
-        for line in io.shell('pip install {}'.format(package)):
+            if type(line) is CalledProcessError:
+                print(vars(line))
+                raise line
+
             res = parse_line(line)
             action = res.get('action')
             if action:
-                if action == ACTION_INSTALLING_SUCCESS:
-                    _package = res.get('packages')[0]
-                elif action == ACTION_REQUIREMENT_PREEXISTS:
-                    _package = res.get('packages')[1]
-
                 print(render_line(line, res))
 
-        if _package:
-            name = _package.get('name', '').lower()
-            managed_to_default_map[name] = package
-            resolved_packages.append(name)
+        # install all managed packages
+        for package in managed_packages:
+            _package = None
+            for line in io.shell('pip install {}'.format(package)):
+                res = parse_line(line)
+                action = res.get('action')
+                if action:
+                    if action == ACTION_INSTALLING_SUCCESS:
+                        _package = res.get('packages')[0]
+                    elif action == ACTION_REQUIREMENT_PREEXISTS:
+                        _package = res.get('packages')[1]
+
+                    print(render_line(line, res))
+
+            if _package:
+                name = _package.get('name', '').lower()
+                managed_to_default_map[name] = package
+                resolved_packages.append(name)
+
+    except CalledProcessError as e:
+        out = ''
+        print(e.output.readlines())
+        for line in e.output.readlines():
+            out = out + line + '\n'
+        raise Exception(
+            ('Failed to install.\n' + out))
 
     print_fetching_success(string_package_names([
         parse_package(package).get('name') for package in resolved_packages]))

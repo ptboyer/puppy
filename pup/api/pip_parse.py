@@ -9,6 +9,7 @@ ACTION_SUCCESS_ALL = 'ACTION_SUCCESS_ALL'
 ACTION_REQUIREMENT_PREEXISTS = 'ACTION_REQUIREMENT_PREEXISTS'
 ACTION_NO_VERSION_FOUND = 'ACTION_NO_VERSION_FOUND'
 ACTION_NO_DISTRIBUTION_FOUND = 'ACTION_NO_DISTRIBUTION_FOUND'
+ACTION_UNINSTALLING = 'ACTION_UNINSTALLING'
 
 LS_COLLECTING_PREFIX = 'Collecting '
 LS_CLONING_PREFIX = 'Cloning '
@@ -22,6 +23,7 @@ LS_REQUIREMENT_PREEXISTS_PREFIX = 'Requirement already satisfied: '
 LS_NO_VERSION_FOUND_PREFIX = 'Could not find a version that satisfies the requirement '
 LS_NO_VERSION_FOUND_SUFFIX = ' (from versions: '
 LS_NO_DISTRIBUTION_FOUND_PREFIX = 'No matching distribution found for '
+LS_UNINSTALLING_PREFIX = 'Uninstalling '
 
 LS_EGG_PREFIX = '#egg='
 
@@ -48,6 +50,8 @@ def get_line_action(line):
         return ACTION_NO_VERSION_FOUND
     elif line.startswith(LS_NO_DISTRIBUTION_FOUND_PREFIX):
         return ACTION_NO_DISTRIBUTION_FOUND
+    elif line.startswith(LS_UNINSTALLING_PREFIX):
+        return ACTION_UNINSTALLING
 
 
 def parse_url(url):
@@ -94,6 +98,10 @@ def find_from_end(string, substring):
     return position
 
 
+def replace_at_position(string, position, replacement):
+    return string[:position] + replacement + string[position:]
+
+
 def get_line_packages(line, action=None):
 
     if not action:
@@ -136,6 +144,10 @@ def get_line_packages(line, action=None):
         packages.append(parse_package(package))
     elif action == ACTION_NO_DISTRIBUTION_FOUND:
         package = line[len(LS_NO_DISTRIBUTION_FOUND_PREFIX):]
+        packages.append(parse_package(package))
+    elif action == ACTION_UNINSTALLING:
+        package = line[len(LS_UNINSTALLING_PREFIX):-1]
+        package = replace_at_position(package, find_from_end(line, '-'), '==')
         packages.append(parse_package(package))
 
     return packages

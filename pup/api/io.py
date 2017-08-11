@@ -1,6 +1,7 @@
 
 import re
 import subprocess
+from subprocess import CalledProcessError
 
 def shell_run(command):
 
@@ -25,7 +26,7 @@ def shell_popen(command):
     popen.stdout.close()
     return_code = popen.wait()
     if return_code:
-        raise subprocess.CalledProcessError(return_code, command)
+        yield CalledProcessError(return_code, command, popen.stderr)
 
 def virtualise(command, target, path):
     return re.sub(

@@ -1,25 +1,30 @@
 
-from ..api import puppy, venv
-from ..api.console import meta, warn
+from ..api import puppy, venv, pip
+from ..api.console import meta, warn, error
+from ..api.packages import format_package_names, string_package_names
+from ..api.venv import io
+from ..api.pip_parse import (
+    ACTION_UNINSTALLING,
+    parse_line
+)
+from .install import render_line
 
-def print_uninstalling(packages):
-    print('🐶  Uninstalling packages ({})'.format(
-        meta(packages)))
+def print_uninstalling():
+    print('🐶  Uninstalling packages')
 
 def print_uninstalling_sucess(packages):
     print('🎾  Successfully uninstalled packages ({})'.format(
         meta(packages)))
 
 def pip_uninstall(packages):
-    res = pip('uninstall {}'.format(packages), pre='/usr/bin/yes | ')
-    if res.returncode != 0:
-        return False
-    return True
+    for line in io.shell('/usr/bin/yes | pip uninstall {}'.format(packages)):
+        res = parse_line(line)
+        action = res.get('action')
+        if action == ACTION_UNINSTALLING:
+            print(render_line(line, res))
 
 @venv.required
 def cmd_uninstall(args):
-
-    use_venv()
 
     target = args.target
     if not target:
@@ -27,29 +32,33 @@ def cmd_uninstall(args):
 
     config = puppy.read()
     packages = format_package_names(target)
-    freeze = index_pip_packages()
+
+    all_packages = {}
+    for package in pip.get_packages():
+        all_packages[package.get('name', '').lower()] = package
 
     # uninstall the packages through pip
-    packages_string = string_package_names(packages)
-    print_uninstalling(packages_string)
+    print_uninstalling()
 
     # check that package exists either in freeze or pupfile
     successful_packages = []
     for package in packages:
-        is_installed = bool(freeze.get(package))
+        is_installed = bool(all_packages.get(package))
         is_saved = bool(config.get('dependencies', {}).get(package))
+
         if not is_installed:
-            print(warn('Package ({}) is not installed!'.format(
+            print(error("Package '{}' is not installed!".format(
                 package)))
-        if args.save and not is_saved:
-            print(warn('Package ({}) is not a saved dependency!'.format(
-                package)))
-        if is_installed or (args.save and is_saved):
+        else:
             if pip_uninstall(package):
                 successful_packages.append(package)
             else:
-                print(warn('Package ({}) failed to uninstall!'.format(
+                print(warn("Package '{}' failed to uninstall!".format(
                     package)))
+
+        if args.save and not is_saved:
+            print(warn("Package '{}' is not a saved dependency!".format(
+                package)))
 
     successful_packages_string = string_package_names(successful_packages)
     if successful_packages_string:

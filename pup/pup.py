@@ -56,7 +56,7 @@ def main():
         if (str(e).find('Failed to establish a new connection') != -1):
             e = 'Failed to establish network connection.'
         print(error(e))
-        # raise(e)
+        raise(e)
         return exit(1)
 
     else:
